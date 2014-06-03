@@ -34,7 +34,7 @@ describe Game do
     expect(game.score).to eq(300)
   end
 
-  it "should work with the game given in the example" do
+  it "should work with the example game given in the requirements" do
    [1,4,4,5,6,4,5,5,10,0,1,7,3,6,4,10,2,8,6].each do |pins|
       game.roll(pins)
     end
