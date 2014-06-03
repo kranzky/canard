@@ -35,7 +35,7 @@ describe Game do
   end
 
   it "should work with the example game given in the requirements" do
-   [1,4,4,5,6,4,5,5,10,0,1,7,3,6,4,10,2,8,6].each do |pins|
+   [1, 4, 4, 5, 6, 4, 5, 5, 10, 0, 1, 7, 3, 6, 4, 10, 2, 8, 6].each do |pins|
       game.roll(pins)
     end
     expect(game.score).to eq(133)
