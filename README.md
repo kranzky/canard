@@ -1,5 +1,5 @@
-Canard
-======
+🦆 Canard
+=========
 
 A proof-of-concept example of Quack-Driven Development (QDD), a waterfowl
 methodology for programmers.
