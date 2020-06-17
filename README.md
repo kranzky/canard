@@ -11,3 +11,8 @@ Usage
 * `bundle install`
 * `bundle exec rspec ./bowling_examples.rb`
 * Smile
+
+Copyright
+---------
+
+Copyright (c) 2020 Jason Hutchens. See UNLICENSE for further details.
