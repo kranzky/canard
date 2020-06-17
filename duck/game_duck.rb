@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require '../bowling/game'
-
 class Game
   Q< :roll do
     before 'takes the number of pins knocked down' do

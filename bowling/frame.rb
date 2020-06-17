@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require '../canard'
+require_relative '../canard'
+require_relative '../duck/frame_duck'
 
 # This is top level comment
 class Frame
@@ -17,6 +18,7 @@ class Frame
   end
 
   Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
   def roll(pins)
     Q< 'called only if the frame is waiting for a roll'
     @rolls << pins
@@ -28,6 +30,7 @@ class Frame
   end
 
   Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
   def bonus_roll(pins)
     Q< 'called only if the frame is waiting for a bonus roll'
     @bonus_rolls << pins

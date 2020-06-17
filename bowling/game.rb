@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-require '../canard'
-require 'frame'
+require_relative '../canard'
+require_relative '../duck/game_duck'
+require_relative 'frame'
 
 # This is top level comment
 class Game
@@ -12,6 +13,7 @@ class Game
   end
 
   Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
   def roll(pins)
     Q< 'called each time the player rolls a ball'
 

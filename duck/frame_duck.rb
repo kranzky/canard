@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require '../bowling/frame'
-
 class Frame
   Q< :needs_roll? do
     after 'returns a bool indicating whether this frame is waiting for a roll' do

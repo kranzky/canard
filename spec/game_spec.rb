@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require '../bowling/game'
+require_relative '../bowling/game'
 
 describe Game do
   let(:game) { described_class.new }

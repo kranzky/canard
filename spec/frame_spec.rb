@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require '../bowling/frame'
+require_relative '../bowling/frame'
 
 describe Frame do
   let(:frame) { described_class.new }
