@@ -1,0 +1,57 @@
+require:
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 2.7
+  DisplayCopNames: true
+  Exclude:
+    - "rocket_engine.gemspec"
+    - "node_modules/**/*"
+
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: true
+
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: true
+
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: true
+
+Lint/MixedRegexpCaptureTypes:
+  Enabled: true
+
+Lint/RaiseException:
+  Enabled: true
+
+Lint/StructNewOverride:
+  Enabled: true
+
+Style/ExponentialNotation:
+  Enabled: true
+
+Style/HashEachMethods:
+  Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/RedundantRegexpCharacterClass:
+  Enabled: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
+
+Style/SlicingWithRange:
+  Enabled: true
+
+Lint/Void:
+  Enabled: false
+
+Layout/SpaceAroundOperators:
+  Enabled: false
+
+Metrics/BlockLength:
+  ExcludedMethods: ['describe', 'context']

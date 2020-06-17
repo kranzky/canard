@@ -1,5 +1,5 @@
 module Canard
-  class BadQuack < StandardError; end
+  class Quack < StandardError; end
 
   def configure
     # TODO
@@ -27,6 +27,10 @@ module Canard
       @_definitions = nil
     end
 
+    def to_s
+      '🦆'
+    end
+
     def <(name)
       require 'debug_inspector'
       parent =
@@ -42,7 +46,7 @@ module Canard
       quackless = "_quackless_#{method_name}"
       klass.send(:alias_method, quackless, method_name)
       klass.eval do
-        define_method, method_name do |*args|
+        define_method(method_name) do |*args|
           puts "xxx"
         end
       end
@@ -60,7 +64,7 @@ module Canard
       when String
         # TODO
       else
-        raise BadQuack, "expected string: #{name}"
+        raise Quack, "expected string: #{name}"
       end
     end
 
@@ -71,7 +75,7 @@ module Canard
       when Symbol
         _def_quack(name)
       else
-        raise BadQuack, "expected string or symbol: #{name}"
+        raise Quack, "expected string or symbol: #{name}"
       end
     end
 
