@@ -37,16 +37,16 @@ Q =
       Object.define_method(name) { |description| Q< description }
     end
 
-    def before(description, &block)
-      _register(:before, description, block)
+    def before(description, code)
+      _register(:before, description, code)
     end
 
-    def during(description, &block)
-      _register(:during, description, block)
+    def during(description, code)
+      _register(:during, description, code)
     end
 
-    def after(description, &block)
-      _register(:after, description, block)
+    def after(description, code)
+      _register(:after, description, code)
     end
 
     def quack(message="disappointed duck")
@@ -57,12 +57,11 @@ Q =
 
   private
 
-    def _register(context, description, block)
-      require 'contextual_proc'
+    def _register(context, description, code)
       quack("duplicate: '#{description}'") if @_quacks.include?(description)
       @_quacks[description] = {
         context: context,
-        proc: ContextualProc.new(&block)
+        code: code
       }
     end
 
@@ -73,10 +72,7 @@ Q =
     def _execute(binding, description)
       puts "execute '#{description}'"
       quack("unregistered: '#{description}'") unless @_quacks.include?(description)
-      binding.receiver.class.define_method(:xxx,  @_quacks[description][:proc])
-      puts binding.receiver.class.instance_method(:xxx).bind(binding).call
-#     puts binding.eval("self.class")
-#     @_quacks[description][:proc].apply(binding)
+      binding.eval(@_quacks[description][:code])
     end
   end.new
 
@@ -92,17 +88,17 @@ class Foo
   end
 end
 
-Q.before "num must be between 0 and 99" do
+Q.before "num must be between 0 and 99", <<~EGG
   puts "AAA"
-end
+EGG
 
-Q.during "num should exist here" do
+Q.during "num should exist here", <<~EGG
   puts self.class
   puts num
-end
+EGG
 
-Q.after "returns half the value passed in" do
+Q.after "returns half the value passed in", <<~EGG
   puts "CCC"
-end
+EGG
 
 Foo.new.bar(42)

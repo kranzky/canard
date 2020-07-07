@@ -1,14 +1,12 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    contextual_proc (1.0.0)
     debug_inspector (0.0.3)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  contextual_proc (~> 1.0.0)
   debug_inspector (~> 0.0.3)
 
 RUBY VERSION
