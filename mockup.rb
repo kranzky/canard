@@ -21,6 +21,7 @@ Q =
 
     def initialize
       @_quacks = {}
+      @_memory = []
     end
 
     def ^(message="disappointed duck")
@@ -31,11 +32,11 @@ Q =
 
     def <(description)
       require 'debug_inspector'
-      binding =
+      context =
         RubyVM::DebugInspector.open do |inspector|
           inspector.frame_binding(2)
         end
-      binding.receiver.class == Class ? _define(binding, description) : _execute(binding, description)
+      context.receiver.class == Class ? _define(context, description) : _execute(context, description)
       nil
     end
 
@@ -59,16 +60,41 @@ Q =
       @_quacks[description] = code
     end
 
-    def _define(binding, description)
+    def _define(context, description)
       puts "define '#{description}'"
-      # TODO: wrap the next method to run pre and post conditions
-      # TODO: all are pre unless description starts with "returns"
+      @_memory << description
+      klass = context.receiver
+      return if klass.methods.include?(:method_defined)
+      def klass.method_added(name)
+        super
+        original = instance_method(name)
+        Q.send(:_wrap, self, name, original)
+      end
     end
 
-    def _execute(binding, description)
+    def _execute(context, description)
       puts "execute '#{description}'"
-      quack("unregistered: '#{description}'") unless @_quacks.include?(description)
-      binding.eval(@_quacks[description])
+      Q^ "unregistered: '#{description}'" unless @_quacks.include?(description)
+      context.eval(@_quacks[description])
+    end
+
+    def _wrap(klass, name, original)
+      return if @_memory.empty? || name =~ /^_q_/
+      puts "wrap #{klass}##{name}"
+      puts original.parameters
+      quackless = "_q_#{name}"
+      before = @_memory.clone.select { |description| description !~ /^returns / }
+      after = @_memory.clone - before
+#     klass.send(:alias_method, quackless, name)
+      # TODO: cache each class that we need to create and batch it at the end
+#     klass.define_method(name) do |*args|
+#       puts *args
+#       before.each { |description| Q.send(:_execute, binding, description) }
+#       retval = send(quackless, args)
+#       after.each { |description| Q.send(:_execute, binding, description) }
+#     end
+    ensure
+      @_memory.clear
     end
   end.new
 
@@ -77,25 +103,26 @@ Q.quack :💥
 
 class Foo
   Q< "num must be between 0 and 99"
-  🐤 "returns half the value passed in"
+  Q< "returns half the value passed in"
   def bar(num)
+    puts "within bar"
     num << 1
     Q< "num should exist here"
     num
   end
 end
 
-Q["num must be between 0 and 99"] = <<~EGG
-  💥"too small" if num < 0
-  💥 "too big" if num > 99
-EGG
+Q["num must be between 0 and 99"] = <<~Q
+  Q^ "too small" if num < 0
+  Q^  "too big" if num > 99
+Q
 
-Q["num should exist here"] = <<~EGG
-  💥 "non-existence!" unless defined? num
-EGG
+Q["num should exist here"] = <<~Q
+  Q^ "non-existence!" unless defined? num
+Q
 
-Q["returns half the value passed in"] = <<~EGG
-  💥 "bad mojo" if retval != num / 2
-EGG
+Q["returns half the value passed in"] = <<~Q
+  Q^ "bad mojo" if retval != num / 2
+Q
 
 Foo.new.bar(42)
