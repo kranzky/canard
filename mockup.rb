@@ -22,11 +22,12 @@ Q =
     def initialize
       @_quacks = {}
       @_memory = []
+      @_caller = nil
     end
 
     def ^(message="ima disappointed duck")
       exception = Quack.new("🐥 - \"#{message}\"")
-      exception.set_backtrace(caller)
+      exception.set_backtrace(@_caller || caller)
       raise exception
     end
 
@@ -36,31 +37,32 @@ Q =
         RubyVM::DebugInspector.open do |inspector|
           inspector.frame_binding(2)
         end
+      @_caller = caller
       context.receiver.class == Class ? _define(context, description) : _execute(context, description)
       nil
+    ensure
+      @_caller = nil
     end
 
     def []=(description, value)
+      @_caller = caller
       _register(description, value)
-    end
-
-    def alias(name)
-      Object.define_method(name) { |description| Q< description }
-    end
-
-    def quack(name)
-      Object.define_method(name) { |description| Q^ description }
+    ensure
+      @_caller = nil
     end
 
   private
 
     def _register(description, code)
-      quack("duplicate: '#{description}'") if @_quacks.include?(description)
+      Q^ "duplicate: '#{description}'" if @_quacks.include?(description)
       @_quacks[description] = code
     end
 
     def _define(context, description)
-      @_memory << description
+      @_memory << {
+        caller: @_caller,
+        description: description
+      }
       klass = context.receiver
       return if klass.methods.include?(:method_added)
       def klass.method_added(name)
@@ -70,22 +72,25 @@ Q =
       end
     end
 
-    def _execute(context, description)
+    def _execute(context, description, original_caller=nil)
+      @_caller ||= original_caller
       Q^ "unregistered: '#{description}'" unless @_quacks.include?(description)
       context.eval(@_quacks[description])
+    ensure
+      @_caller = nil
     end
 
     def _wrap(klass, name, original)
       return if @_memory.empty? || name =~ /^_q_/
-      before = @_memory.clone.select { |description| description !~ /^returns / }
+      before = @_memory.clone.select { |item| item[:description] !~ /^returns / }
       after = @_memory.clone - before
       quackless = "_q_#{name}"
       klass.send(:alias_method, quackless, name)
       eval <<~Q
         klass.define_method(name) do |#{_args(original.parameters)}|
-          before.each { |description| Q.send(:_execute, binding, description) }
+          before.each { |item| Q.send(:_execute, binding, item[:description], item[:caller]) }
           retval = send(quackless, #{original.parameters.map(&:last).join(', ')})
-          after.each { |description| Q.send(:_execute, binding, description) }
+          after.each { |item| Q.send(:_execute, binding, item[:description], item[:caller]) }
           retval
         end
       Q
@@ -114,9 +119,6 @@ Q =
       end.join(', ')
     end
   end.new
-
-Q.alias :🐤
-Q.quack :💥
 
 class Foo
   Q< "num must be between 0 and 99"
