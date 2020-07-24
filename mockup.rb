@@ -55,13 +55,11 @@ Q =
   private
 
     def _register(description, code)
-      puts "register '#{description}'"
       quack("duplicate: '#{description}'") if @_quacks.include?(description)
       @_quacks[description] = code
     end
 
     def _define(context, description)
-      puts "define '#{description}'"
       @_memory << description
       klass = context.receiver
       return if klass.methods.include?(:method_added)
@@ -73,23 +71,22 @@ Q =
     end
 
     def _execute(context, description)
-      puts "execute '#{description}'"
       Q^ "unregistered: '#{description}'" unless @_quacks.include?(description)
       context.eval(@_quacks[description])
     end
 
     def _wrap(klass, name, original)
       return if @_memory.empty? || name =~ /^_q_/
-      puts "wrap #{klass}##{name}"
-      puts original.parameters
       before = @_memory.clone.select { |description| description !~ /^returns / }
       after = @_memory.clone - before
       quackless = "_q_#{name}"
       klass.send(:alias_method, quackless, name)
+      # TODO: generate args list from original.parameters
       klass.define_method(name) do |num|
         before.each { |description| Q.send(:_execute, binding, description) }
         retval = send(quackless, num)
         after.each { |description| Q.send(:_execute, binding, description) }
+        retval
       end
     ensure
       @_memory.clear
@@ -122,4 +119,4 @@ Q["returns half the value passed in"] = <<~Q
   Q^ "wrong answer" if retval != num / 2
 Q
 
-Foo.new.bar(42)
+puts Foo.new.bar(ARGV.first.to_i)
