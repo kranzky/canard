@@ -64,7 +64,7 @@ Q =
       puts "define '#{description}'"
       @_memory << description
       klass = context.receiver
-      return if klass.methods.include?(:method_defined)
+      return if klass.methods.include?(:method_added)
       def klass.method_added(name)
         super
         original = instance_method(name)
@@ -82,17 +82,15 @@ Q =
       return if @_memory.empty? || name =~ /^_q_/
       puts "wrap #{klass}##{name}"
       puts original.parameters
-      quackless = "_q_#{name}"
       before = @_memory.clone.select { |description| description !~ /^returns / }
       after = @_memory.clone - before
-#     klass.send(:alias_method, quackless, name)
-      # TODO: cache each class that we need to create and batch it at the end
-#     klass.define_method(name) do |*args|
-#       puts *args
-#       before.each { |description| Q.send(:_execute, binding, description) }
-#       retval = send(quackless, args)
-#       after.each { |description| Q.send(:_execute, binding, description) }
-#     end
+      quackless = "_q_#{name}"
+      klass.send(:alias_method, quackless, name)
+      klass.define_method(name) do |num|
+        before.each { |description| Q.send(:_execute, binding, description) }
+        retval = send(quackless, num)
+        after.each { |description| Q.send(:_execute, binding, description) }
+      end
     ensure
       @_memory.clear
     end
@@ -105,8 +103,7 @@ class Foo
   Q< "num must be between 0 and 99"
   Q< "returns half the value passed in"
   def bar(num)
-    puts "within bar"
-    num << 1
+    num >>= 1
     Q< "num should exist here"
     num
   end
@@ -114,7 +111,7 @@ end
 
 Q["num must be between 0 and 99"] = <<~Q
   Q^ "too small" if num < 0
-  Q^  "too big" if num > 99
+  Q^ "too big" if num > 99
 Q
 
 Q["num should exist here"] = <<~Q
@@ -122,7 +119,7 @@ Q["num should exist here"] = <<~Q
 Q
 
 Q["returns half the value passed in"] = <<~Q
-  Q^ "bad mojo" if retval != num / 2
+  Q^ "wrong answer" if retval != num / 2
 Q
 
 Foo.new.bar(42)
