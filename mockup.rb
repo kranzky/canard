@@ -81,15 +81,37 @@ Q =
       after = @_memory.clone - before
       quackless = "_q_#{name}"
       klass.send(:alias_method, quackless, name)
-      # TODO: generate args list from original.parameters
-      klass.define_method(name) do |num|
-        before.each { |description| Q.send(:_execute, binding, description) }
-        retval = send(quackless, num)
-        after.each { |description| Q.send(:_execute, binding, description) }
-        retval
-      end
+      eval <<~Q
+        klass.define_method(name) do |#{_args(original.parameters)}|
+          before.each { |description| Q.send(:_execute, binding, description) }
+          retval = send(quackless, #{original.parameters.map(&:last).join(', ')})
+          after.each { |description| Q.send(:_execute, binding, description) }
+          retval
+        end
+      Q
     ensure
       @_memory.clear
+    end
+
+    def _args(data)
+      data.map do |kind, name|
+        case kind
+        when :req
+          name
+        when :opt
+          "#{name}=nil"
+        when :rest
+          "*#{name}"
+        when :block
+          "&#{name}"
+        when :key
+          "#{name}:"
+        when :keyopt
+          "#{name}:nil"
+        when :keyrest
+          "**#{name}"
+        end
+      end.join(', ')
     end
   end.new
 
@@ -99,7 +121,7 @@ Q.quack :💥
 class Foo
   Q< "num must be between 0 and 99"
   Q< "returns half the value passed in"
-  def bar(num)
+  def bar(num, foo)
     num >>= 1
     Q< "num should exist here"
     num
@@ -113,10 +135,11 @@ Q
 
 Q["num should exist here"] = <<~Q
   Q^ "non-existence!" unless defined? num
+  puts foo
 Q
 
 Q["returns half the value passed in"] = <<~Q
   Q^ "wrong answer" if retval != num / 2
 Q
 
-puts Foo.new.bar(ARGV.first.to_i)
+puts Foo.new.bar(ARGV.first.to_i, 137)
