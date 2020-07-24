@@ -24,8 +24,8 @@ Q =
       @_memory = []
     end
 
-    def ^(message="disappointed duck")
-      exception = Quack.new("🐥🐥🐥 #{message} 🐥🐥🐥")
+    def ^(message="ima disappointed duck")
+      exception = Quack.new("🐥 - \"#{message}\"")
       exception.set_backtrace(caller)
       raise exception
     end
