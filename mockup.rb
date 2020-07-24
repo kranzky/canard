@@ -37,30 +37,27 @@ Q =
         RubyVM::DebugInspector.open do |inspector|
           inspector.frame_binding(2)
         end
-      @_caller = caller
-      context.receiver.class == Class ? _define(context, description) : _execute(context, description)
+      context.receiver.class == Class ? _define(context, description, caller) : _execute(context, description, caller)
       nil
-    ensure
-      @_caller = nil
     end
 
     def []=(description, value)
-      @_caller = caller
-      _register(description, value)
-    ensure
-      @_caller = nil
+      _register(description, value, caller)
     end
 
   private
 
-    def _register(description, code)
+    def _register(description, code, original_caller)
+      @_caller = original_caller
       Q^ "duplicate: '#{description}'" if @_quacks.include?(description)
       @_quacks[description] = code
+    ensure
+      @_caller = nil
     end
 
-    def _define(context, description)
+    def _define(context, description, original_caller)
       @_memory << {
-        caller: @_caller,
+        caller: original_caller,
         description: description
       }
       klass = context.receiver
@@ -72,8 +69,8 @@ Q =
       end
     end
 
-    def _execute(context, description, original_caller=nil)
-      @_caller ||= original_caller
+    def _execute(context, description, original_caller)
+      @_caller = original_caller
       Q^ "unregistered: '#{description}'" unless @_quacks.include?(description)
       context.eval(@_quacks[description])
     ensure
