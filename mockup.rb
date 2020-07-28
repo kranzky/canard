@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'rspec/expectations'
+
 Q =
   Class.new do
     class Quack < StandardError
@@ -73,6 +75,9 @@ Q =
       @_caller = original_caller
       Q^ "unregistered: '#{description}'" unless @_quacks.include?(description)
       context.eval(@_quacks[description])
+    rescue RSpec::Expectations::ExpectationNotMetError
+      @_caller = original_caller
+      Q^ description
     ensure
       @_caller = nil
     end
@@ -117,28 +122,163 @@ Q =
     end
   end.new
 
-class Foo
-  Q< "num must be between 0 and 99"
-  Q< "returns half the value passed in"
-  def bar(num, foo)
-    num >>= 1
-    Q< "num should exist here"
-    num
+# ==============================================================================
+
+class Frame
+  include RSpec::Matchers
+
+  def initialize
+    @rolls = []
+    @bonus_rolls = []
+  end
+
+  Q< 'returns whether this frame is waiting for a roll'
+  def needs_roll?
+    !_strike? && @rolls.size < 2
+  end
+
+  Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
+  def roll(pins)
+    Q< 'called only if the frame is waiting for a roll'
+    @rolls << pins
+    nil
+  end
+
+  Q< 'returns whether this frame is waiting for a bonus roll'
+  def needs_bonus_roll?
+    _strike? && @bonus_rolls.size < 2 || _spare? && @bonus_rolls.empty?
+  end
+
+  Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
+  def bonus_roll(pins)
+    Q< 'called only if the frame is waiting for a bonus roll'
+    @bonus_rolls << pins
+    nil
+  end
+
+  Q< 'returns the total score for this frame'
+  def score
+    Q< 'called only when no more rolls are required'
+    @rolls.reduce(:+) + @bonus_rolls.reduce(0, :+)
+  end
+
+  private
+
+  def _strike?
+    @rolls.first == 10
+  end
+
+  def _spare?
+    @rolls.reduce(:+) == 10
   end
 end
 
-Q["num must be between 0 and 99"] = <<~Q
-  Q^ "too small" if num < 0
-  Q^ "too big" if num > 99
+# ------------------------------------------------------------------------------
+
+class Game
+  include RSpec::Matchers
+
+  def initialize
+    @frames = []
+  end
+
+  Q< 'takes the number of pins knocked down'
+  Q< 'returns nil'
+  def roll(pins)
+    Q< 'called each time the player rolls a ball'
+
+    @frames << Frame.new if _start_new_frame?
+
+    Q< 'a frame that needs a roll should exist here'
+    Q< 'if we are on the 10th frame, the frame may be complete'
+
+    @frames.each do |frame|
+      frame.bonus_roll(pins) if frame.needs_bonus_roll?
+    end
+
+    @frames.last.roll(pins) if @frames.last.needs_roll?
+  end
+
+  Q< 'returns the total score for the game'
+  def score
+    Q< 'only called at the very end of the game'
+    @frames.map(&:score).reduce(:+)
+  end
+
+  private
+
+  def _start_new_frame?
+    @frames.size.zero? || @frames.size < 10 && !@frames.last.needs_roll?
+  end
+end
+
+# ==============================================================================
+
+Q['returns nil'] = <<~Q
+  expect(retval).to be_nil
 Q
 
-Q["num should exist here"] = <<~Q
-  Q^ "non-existence!" unless defined? num
-  puts foo
+Q['returns whether this frame is waiting for a roll'] = <<~Q
+  expect([true, false]).to include(retval)
 Q
 
-Q["returns half the value passed in"] = <<~Q
-  Q^ "wrong answer" if retval != num / 2
+Q['takes the number of pins knocked down'] = <<~Q
+  expect(pins).to be_a(Integer)
+  expect(0..10).to cover(pins)
 Q
 
-puts Foo.new.bar(ARGV.first.to_i, 137)
+Q['called only if the frame is waiting for a roll'] = <<~Q
+  expect(needs_roll?).to eq(true)
+Q
+
+Q['returns whether this frame is waiting for a bonus roll'] = <<~Q
+  expect([true, false]).to include(retval)
+Q
+
+Q['called only if the frame is waiting for a bonus roll'] = <<~Q
+  expect(needs_bonus_roll?).to eq(true)
+Q
+
+Q['called only when the frame is complete'] = <<~Q
+  expect(needs_roll?).to be_false
+  expect(needs_bonus_roll?).to be_false
+Q
+
+Q['returns the total score for this frame'] = <<~Q
+  expect(retval).to be_a(FixNum)
+  expect([0..30]).to cover(retval)
+Q
+
+Q['called each time the player rolls a ball'] = <<~Q
+  expect(@frames).to be_a(Array)
+  expect(0..10).to cover(@frames.length)
+Q
+
+Q['a frame that needs a roll should exist here'] = <<~Q
+  needs_roll = @frames.last.needs_roll? || @frames.last.needs_bonus_roll?
+  expect(needs_roll).to eq(true)
+Q
+
+Q['if we are on the 10th frame, the frame may be complete'] = <<~Q
+  if @frames.length < 10
+    expect(@frames.last.needs_roll?).to eq(true)
+  end
+Q
+
+Q['only called at the very end of the game'] = <<~Q
+  expect(@frames.length).to eq(10)
+  needs_roll = @frames.last.needs_roll? || @frames.last.needs_bonus_roll?
+  expect(needs_roll).to be_false
+Q
+
+Q['returns the total score for the game'] = <<~Q
+  expect(retval).to be_a(FixNum)
+  expect(0..300).to cover(retval)
+Q
+
+# ==============================================================================
+
+game = Game.new
+game.roll(5)
