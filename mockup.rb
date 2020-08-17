@@ -47,6 +47,33 @@ Q =
       _register(description, value, caller)
     end
 
+    def <<(blob)
+      mode = :description
+      description = nil
+      value = []
+      blob.split("\n").each do |line|
+        line.strip!
+        case mode
+        when :description
+          if line =~ /## (.*)$/
+            description = Regexp.last_match(1)
+            mode = :value_start
+          end
+        when :value_start
+          mode = :value_parse if line =~ /``/
+        when :value_parse
+          if line =~ /``/
+            _register(description, value.join("\n"), caller)
+            description = nil
+            value.clear
+            mode = :description
+          else
+            value << line
+          end
+        end
+      end
+    end
+
   private
 
     def _register(description, code, original_caller)
@@ -216,69 +243,7 @@ end
 
 # ==============================================================================
 
-Q['returns nil'] = <<~Q
-  expect(retval).to be_nil
-Q
-
-Q['returns whether this frame is waiting for a roll'] = <<~Q
-  expect([true, false]).to include(retval)
-Q
-
-Q['takes the number of pins knocked down'] = <<~Q
-  expect(pins).to be_a(Integer)
-  expect(0..10).to cover(pins)
-Q
-
-Q['called only if the frame is waiting for a roll'] = <<~Q
-  expect(needs_roll?).to eq(true)
-Q
-
-Q['returns whether this frame is waiting for a bonus roll'] = <<~Q
-  expect([true, false]).to include(retval)
-Q
-
-Q['called only if the frame is waiting for a bonus roll'] = <<~Q
-  expect(needs_bonus_roll?).to eq(true)
-Q
-
-Q['called only when the frame is complete'] = <<~Q
-  expect(needs_roll?).to be_false
-  expect(needs_bonus_roll?).to be_false
-Q
-
-Q['returns the total score for this frame'] = <<~Q
-  expect(retval).to be_a(FixNum)
-  expect([0..30]).to cover(retval)
-Q
-
-Q['called each time the player rolls a ball'] = <<~Q
-  expect(@frames).to be_a(Array)
-  expect(0..10).to cover(@frames.length)
-Q
-
-Q['a frame that needs a roll should exist here'] = <<~Q
-  needs_roll = @frames.last.needs_roll? || @frames.last.needs_bonus_roll?
-  expect(needs_roll).to eq(true)
-Q
-
-Q['if we are on the 10th frame, the frame may be complete'] = <<~Q
-  if @frames.length < 10
-    expect(@frames.last.needs_roll?).to eq(true)
-  end
-Q
-
-Q['only called at the very end of the game'] = <<~Q
-  expect(@frames.length).to eq(10)
-  needs_roll = @frames.last.needs_roll? || @frames.last.needs_bonus_roll?
-  expect(needs_roll).to be_false
-Q
-
-Q['returns the total score for the game'] = <<~Q
-  expect(retval).to be_a(FixNum)
-  expect(0..300).to cover(retval)
-Q
-
-# ==============================================================================
+Q << File.read("QUACKS.md")
 
 game = Game.new
 game.roll(5)
