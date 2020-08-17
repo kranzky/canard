@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'canard'
+require 'canard/bowling'
+
+# TODO: command to run a bowling game interactively
+# TODO: command to toggle quacks
+# TODO: command to generate QUACKS.md
