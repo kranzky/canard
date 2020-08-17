@@ -23,7 +23,7 @@ Juwelier::Tasks.new do |gem|
   gem.homepage = "http://github.com/kranzky/canard"
   gem.license = "UNLICENSE"
   gem.summary = "A waterfowl development methodology."
-  gem.description = "TDD is 'canard. Rubber-ducking is 'cneasy."
+  gem.description = "Canard is proof-of-concept of QDD (quack-driven development)."
   gem.email = "lloyd@kranzky.com"
   gem.authors = ["Lloyd Kranzky"]
   gem.version = s_version

@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Lloyd Kranzky".freeze]
   s.date = "2020-08-17"
-  s.description = "TDD is 'canard. Rubber-ducking is 'cneasy.".freeze
+  s.description = "Canard is proof-of-concept of QDD (quack-driven development).".freeze
   s.email = "lloyd@kranzky.com".freeze
   s.executables = ["canard".freeze]
   s.extra_rdoc_files = [
@@ -32,12 +32,12 @@ Gem::Specification.new do |s|
     "Rakefile",
     "UNLICENSE",
     "bin/canard",
+    "canard.gemspec",
     "lib/canard.rb",
     "lib/canard/bowling.rb",
     "lib/canard/canard.rb",
-    "mockup.rb",
-    "spec/frame_spec.rb",
-    "spec/game_spec.rb"
+    "spec/bowling_spec.rb",
+    "spec/spec_helper.rb"
   ]
   s.homepage = "http://github.com/kranzky/canard".freeze
   s.licenses = ["UNLICENSE".freeze]

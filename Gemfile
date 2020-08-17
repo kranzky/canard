@@ -5,6 +5,7 @@ gem "semver2", "~> 3"
 
 group :development do
   gem "rspec", "~> 3.9"
+  gem 'rspec-expectations', '~> 3.9'
   gem "yard", "~> 0.9"
   gem "rdoc", "~> 6.2"
   gem "bundler", "~> 2.1"

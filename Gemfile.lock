@@ -84,6 +84,7 @@ DEPENDENCIES
   juwelier (~> 2.4)
   rdoc (~> 6.2)
   rspec (~> 3.9)
+  rspec-expectations (~> 3.9)
   semver2 (~> 3)
   simplecov (~> 0.19)
   yard (~> 0.9)

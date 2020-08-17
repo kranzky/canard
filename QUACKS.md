@@ -40,15 +40,15 @@
 ## called only when the frame is complete
 
 ```
-  expect(needs_roll?).to be_false
-  expect(needs_bonus_roll?).to be_false
+  expect(needs_roll?).to eq(false)
+  expect(needs_bonus_roll?).to eq(false)
 ```
 
 ## returns the total score for this frame
 
 ```
-  expect(retval).to be_a(FixNum)
-  expect([0..30]).to cover(retval)
+  expect(retval).to be_a(Integer)
+  expect(0..30).to cover(retval)
 ```
 
 ## called each time the player rolls a ball
@@ -78,12 +78,18 @@
 ```
   expect(@frames.length).to eq(10)
   needs_roll = @frames.last.needs_roll? || @frames.last.needs_bonus_roll?
-  expect(needs_roll).to be_false
+  expect(needs_roll).to eq(false)
 ```
 
 ## returns the total score for the game
 
 ```
-  expect(retval).to be_a(FixNum)
+  expect(retval).to be_a(Integer)
   expect(0..300).to cover(retval)
+```
+
+## called only when no more rolls are required
+
+```
+  expect(needs_roll?).to eq(false)
 ```
