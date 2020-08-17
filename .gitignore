@@ -1,2 +1,10 @@
 TODO.txt
+coverage
+coverage.data
+rdoc
+doc
+.yardoc
+.bundle
+pkg
+.DS_Store
 *.swp
