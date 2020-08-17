@@ -1,8 +1,6 @@
-# frozen_string_literal: true
+require_relative './spec_helper'
 
-require_relative '../bowling/game'
-
-describe Game do
+describe Bowling::Game do
   let(:game) { described_class.new }
 
   it 'returns 0 when a gutter game is bowled' do
