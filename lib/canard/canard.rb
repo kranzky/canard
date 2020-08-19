@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 Q =
   Class.new do
+    # The exception type that Canard throws when it encounters any error, either
+    # during startup or during execution of user code.
     class Quack < StandardError
       def initialize(message)
         super
@@ -10,12 +14,12 @@ Q =
       def to_s
         '🥚'
       end
-      alias :inspect :to_s
+      alias_method :inspect, :to_s
     end
     def to_s
       '🐣'
     end
-    alias :inspect :to_s
+    alias_method :inspect, :to_s
 
     def initialize
       @_quacks = {}
@@ -23,19 +27,19 @@ Q =
       @_caller = nil
     end
 
-    def ^(message="ima disappointed duck")
+    def ^(message = 'ima disappointed duck')
       exception = Quack.new("🐥 - \"#{message}\"")
       exception.set_backtrace(@_caller || caller)
       raise exception
     end
 
-    def <(description)
+    def <(other)
       require 'debug_inspector'
       context =
         RubyVM::DebugInspector.open do |inspector|
           inspector.frame_binding(2)
         end
-      context.receiver.class == Class ? _define(context, description, caller) : _execute(context, description, caller)
+      context.receiver.class == Class ? _define(context, other, caller) : _execute(context, other, caller)
       nil
     end
 
@@ -70,7 +74,7 @@ Q =
       end
     end
 
-  private
+    private
 
     def _register(description, code, original_caller)
       @_caller = original_caller
@@ -87,6 +91,7 @@ Q =
       }
       klass = context.receiver
       return if klass.methods.include?(:method_added)
+
       def klass.method_added(name)
         super
         original = instance_method(name)
@@ -107,11 +112,12 @@ Q =
 
     def _wrap(klass, name, original)
       return if @_memory.empty? || name =~ /^_q_/
-      before = @_memory.clone.select { |item| item[:description] !~ /^returns / }
-      after = @_memory.clone - before
+
+      before = @_memory.clone.reject { |item| item[:description] =~ /^returns / }
+      after = @_memory.clone - before # rubocop:disable Lint/UselessAssignment
       quackless = "_q_#{name}"
       klass.send(:alias_method, quackless, name)
-      eval <<~Q
+      eval <<~Q # rubocop:disable Security/Eval,Style/EvalWithLocation
         klass.define_method(name) do |#{_args(original.parameters)}|
           before.each { |item| Q.send(:_execute, binding, item[:description], item[:caller]) }
           retval = send(quackless, #{original.parameters.map(&:last).join(', ')})

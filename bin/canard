@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'canard'
 require 'canard/bowling'
+
+puts Q.class
+puts Q
 
 # TODO: command to run a bowling game interactively
 # TODO: command to toggle quacks

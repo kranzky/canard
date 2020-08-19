@@ -1,4 +1,6 @@
-require_relative './spec_helper'
+# frozen_string_literal: true
+
+require_relative '../spec_helper'
 
 describe Bowling::Game do
   let(:game) { described_class.new }

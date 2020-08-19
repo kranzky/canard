@@ -56,6 +56,15 @@ Lint/TopLevelReturnWithArgument:
 Lint/UnreachableLoop:
   Enabled: true
 
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
 Style/AccessorGrouping:
   Enabled: true
 

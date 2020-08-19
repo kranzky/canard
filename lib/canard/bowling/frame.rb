@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require 'rspec/expectations'
 
 module Bowling
+  # Keeps track of a single frame within a game of bowling, determining which
+  # kinds of rolls need to take place and returning the total score.
   class Frame
     include RSpec::Matchers
 
