@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 Q =
   Class.new do
     class Quack < StandardError
